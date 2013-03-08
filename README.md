@@ -3,19 +3,13 @@ Usage
 
 `php loc.php --directory C:\projects\awesomecode`
 
-`Files: 247
-
-PHP Tags: 2319 (3.84%)
-
-Whitespace: 7856 (13.02%)
-
-Comments: 5437 (9.01%)
-
-Multi line comments: 3538 (5.86%)
-
-Functions: 682
-
-LOC: 41193 (68.26%)`
+    Files: 247
+    PHP Tags: 2319 (3.84%)
+    Whitespace: 7856 (13.02%)
+    Comments: 5437 (9.01%)
+    Multi line comments: 3538 (5.86%)
+    Functions: 682
+    LOC: 41193 (68.26%)
 
 
 The stats

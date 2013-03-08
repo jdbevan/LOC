@@ -3,6 +3,8 @@ Usage
 
 `php loc.php --directory C:\projects\awesomecode`
 
+`php loc.php --directory /home/jon/code --exclude-dir /home/jon/code/old --exclude-dir /home/jon/code/old2`
+
     Files: 247
     PHP Tags: 2319 (3.84%)
     Whitespace: 7856 (13.02%)

@@ -17,6 +17,7 @@ while(null !== ($argument = array_shift($arguments))) {
 }
 
 class LinesOfCode {
+	private $exclude;
 	private $files = 0;
 	private $comments = 0;
 	private $multiComments = 0;
@@ -26,8 +27,11 @@ class LinesOfCode {
 	private $functions = 0;
 	
 	public function __construct($directory, $exclude = null) {
+		$this->exclude = (is_array($exclude)) ? $exclude : array();
 		$this->loc($directory);
+
 		$total = $this->tags + $this->whitespace + $this->comments + $this->multiComments + $this->code;
+
 		echo "Files: ".$this->files."\n";
 		echo "PHP Tags: ".$this->tags." (".round($this->tags/$total*100,2)."%)\n";
 		echo "Whitespace: ".$this->whitespace." (".round($this->whitespace/$total*100,2)."%)\n";
@@ -37,18 +41,21 @@ class LinesOfCode {
 		echo "LOC: ".$this->code." (".round($this->code/$total*100,2)."%)\n";
 	}
 	private function loc($directory) {
+		if (in_array($directory, $this->exclude)) {
+			return;
+		}
 		if ($handle = opendir($directory)) {
 			
 			while (false !== ($entry = readdir($handle))) {
 				
 				if ($entry != "." and $entry != "..") {
 					
-					if (is_dir($directory . "/" . $entry)) {
-						$this->loc($directory . "/" . $entry); //, $files, $comments, $whitespace, $code);
+					if (is_dir($directory . DIRECTORY_SEPARATOR . $entry)) {
+						$this->loc($directory . DIRECTORY_SEPARATOR . $entry);
 					} else if (preg_match("/\.php$/", $entry)) {
 						
 						$this->files++;
-						$fh = fopen($directory . "/" . $entry, 'r');
+						$fh = fopen($directory . DIRECTORY_SEPARATOR . $entry, 'r');
 						if ($fh) {
 							while (false !== ($line = fgets($fh, 4096))) {
 								
@@ -111,6 +118,6 @@ class LinesOfCode {
 	}
 }
 
-new LinesOfCode($directory);		
+new LinesOfCode($directory, $exclude);		
 
 ?>

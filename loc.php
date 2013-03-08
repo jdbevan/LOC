@@ -31,6 +31,8 @@ class LinesOfCode {
 		$this->loc($directory);
 
 		$total = $this->tags + $this->whitespace + $this->comments + $this->multiComments + $this->code;
+		
+		if ($total==0) die("No stats gathered!");
 
 		echo "Files: ".$this->files."\n";
 		echo "PHP Tags: ".$this->tags." (".round($this->tags/$total*100,2)."%)\n";
@@ -44,20 +46,21 @@ class LinesOfCode {
 		if (in_array($directory, $this->exclude)) {
 			return;
 		}
-		if ($handle = opendir($directory)) {
+		if ($handle = @opendir($directory)) {
 			
 			while (false !== ($entry = readdir($handle))) {
 				
 				if ($entry != "." and $entry != "..") {
 					
-					if (is_dir($directory . DIRECTORY_SEPARATOR . $entry)) {
-						$this->loc($directory . DIRECTORY_SEPARATOR . $entry);
+					$file = $directory . DIRECTORY_SEPARATOR . $entry;
+					if (is_dir($file)) {
+						$this->loc($file);
 					} else if (preg_match("/\.php$/", $entry)) {
 						
 						$this->files++;
-						$fh = fopen($directory . DIRECTORY_SEPARATOR . $entry, 'r');
+						$fh = fopen($file, 'r');
 						if ($fh) {
-							while (false !== ($line = fgets($fh, 4096))) {
+							while (false !== ($line = @fgets($fh, 4096))) {
 								
 								// Blank line							
 								if (preg_match("/^\s*$/", $line)) {
@@ -88,7 +91,7 @@ class LinesOfCode {
 									
 									if (!preg_match("/\/\*.*\*\//", $line)) {
 										// If not multiline comment on one line
-										while (false !== ($line = fgets($fh, 4096))) {
+										while (false !== ($line = @fgets($fh, 4096))) {
 											$this->multiComments++;
 											if (preg_match("/\*\//", $line)) {
 												break;
@@ -105,7 +108,7 @@ class LinesOfCode {
 								}
 							}
 							if (!feof($fh)) {
-								echo "fgets() failed...";
+								echo "fgets() failed... for $file\n";
 							}
 							fclose($fh);
 						}
@@ -114,6 +117,7 @@ class LinesOfCode {
 			}
 		} else {
 			echo "Can't open directory: $directory\n";
+			return false;
 		}
 	}
 }

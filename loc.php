@@ -18,13 +18,16 @@ while(null !== ($argument = array_shift($arguments))) {
 
 class LinesOfCode {
 	private $exclude;
+	private $folders = 0;
 	private $files = 0;
+	private $filesize = 0;
 	private $comments = 0;
 	private $multiComments = 0;
 	private $whitespace = 0;
 	private $tags = 0;
 	private $code = 0;
 	private $functions = 0;
+	private $queries = 0;
 	
 	public function __construct($directory, $exclude = null) {
 		$this->exclude = (is_array($exclude)) ? $exclude : array();
@@ -34,13 +37,15 @@ class LinesOfCode {
 		
 		if ($total==0) die("No stats gathered!");
 
-		echo "Files: ".$this->files."\n";
-		echo "PHP Tags: ".$this->tags." (".round($this->tags/$total*100,2)."%)\n";
-		echo "Whitespace: ".$this->whitespace." (".round($this->whitespace/$total*100,2)."%)\n";
-		echo "Comments: ".$this->comments." (".round($this->comments/$total*100,2)."%)\n";
-		echo "Multi line comments: ".$this->multiComments." (".round($this->multiComments/$total*100,2)."%)\n";
-		echo "Functions: ".$this->functions."\n";
-		echo "LOC: ".$this->code." (".round($this->code/$total*100,2)."%)\n";
+		echo "PHP Files:\t\t".$this->files." (".round($this->filesize/1024/1024,2)."MB)\n";
+		echo "Folders:\t\t".$this->folders."\n";
+		echo "PHP Tags:\t\t".$this->tags."\n";
+		echo "Blank lines:\t\t".$this->whitespace." (".round($this->whitespace/$total*100,2)."%)\n";
+		echo "Single comment lines:\t".$this->comments." (".round($this->comments/$total*100,2)."%)\n";
+		echo "Multi line comments:\t".$this->multiComments." (".round($this->multiComments/$total*100,2)."%)\n";
+		echo "Functions:\t\t".$this->functions."\n";
+		echo "Queries:\t\t".$this->queries."\n";
+		echo "LOC:\t\t\t".$this->code." (".round($this->code/$total*100,2)."%)\n";
 	}
 	private function loc($directory) {
 		if (in_array($directory, $this->exclude)) {
@@ -54,15 +59,17 @@ class LinesOfCode {
 					
 					$file = $directory . DIRECTORY_SEPARATOR . $entry;
 					if (is_dir($file)) {
+						$this->folders++;
 						$this->loc($file);
 					} else if (preg_match("/\.php$/", $entry)) {
 						
 						$this->files++;
+						$this->filesize += filesize($file);
 						$fh = fopen($file, 'r');
 						if ($fh) {
 							while (false !== ($line = @fgets($fh, 4096))) {
 								
-								// Blank line							
+								// Blank line
 								if (preg_match("/^\s*$/", $line)) {
 									$this->whitespace++;
 								}
@@ -86,7 +93,7 @@ class LinesOfCode {
 										// If whitespace is only other thing before comment
 										$this->multiComments++;
 									} else {
-										$this->code++;
+										$this->countCode($line); //de++;
 									}
 									
 									if (!preg_match("/\/\*.*\*\//", $line)) {
@@ -101,10 +108,7 @@ class LinesOfCode {
 									
 								}
 								else if (!preg_match("/^\s*[{}]\s*$/", $line)) {
-									$this->code++;
-									if (preg_match("/\bfunction\b/", $line)) {
-										$this->functions++;
-									}
+									$this->countCode($line);
 								}
 							}
 							if (!feof($fh)) {
@@ -120,8 +124,17 @@ class LinesOfCode {
 			return false;
 		}
 	}
+	private function countCode($line) {
+		$this->code++;
+		if (preg_match("/\bfunction\b/", $line)) {
+			$this->functions++;
+		}
+		if (preg_match("/mysqli?_query\(/", $line)) {
+			$this->queries++;
+		}
+	}
 }
 
-new LinesOfCode($directory, $exclude);		
+new LinesOfCode($directory, $exclude);
 
 ?>
